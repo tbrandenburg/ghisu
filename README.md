@@ -2,6 +2,32 @@
 
 A terminal Kanban board for GitHub issues, built with [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lip Gloss](https://github.com/charmbracelet/lipgloss).
 
+## Preview
+
+```
+╭─────────────────────────────────────────────────────────────────────────╮
+│  ghisu — tbrandenburg/ghisu                    last refresh: 14:03:22   │
+├──────────────────┬──────────────────┬──────────────────┬────────────────┤
+│ Todo (3)         │ Bugs (1)         │ Doing (1)        │ Done (1)       │
+├──────────────────┼──────────────────┼──────────────────┼────────────────┤
+│                  │                  │                  │                │
+│ > #4 Another     │   #2 Sample bug  │   #3 Sample      │   #1 Sample    │
+│     todo task    │      issue       │      in-progress │      todo      │
+│                  │                  │      issue       │      issue     │
+│   #3 Sample      │                  │                  │                │
+│      in-progress │                  │                  │                │
+│      issue       │                  │                  │                │
+│                  │                  │                  │                │
+│   #2 Sample bug  │                  │                  │                │
+│      issue       │                  │                  │                │
+│                  │                  │                  │                │
+├──────────────────┴──────────────────┴──────────────────┴────────────────┤
+│  h/l: col   j/k: item   r: refresh   q: quit                            │
+╰─────────────────────────────────────────────────────────────────────────╯
+```
+
+> Active column and selected item are highlighted in the terminal.
+
 ## Features
 
 - Four-column board: **Todo**, **Bugs**, **Doing**, **Done**
