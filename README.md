@@ -34,7 +34,31 @@ ghisu
 
 # Explicit repo
 ghisu --repo owner/repo
+
+# Custom column config
+ghisu --config ~/.config/ghisu/config.json
 ```
+
+## Configuration
+
+Columns and queries can be defined in a JSON file. The default location is
+`$XDG_CONFIG_HOME/ghisu/config.json` (or `~/.config/ghisu/config.json`).
+
+```json
+{
+  "columns": [
+    { "name": "Todo",  "query": "is:open no:assignee" },
+    { "name": "Bugs",  "query": "is:open label:bug" },
+    { "name": "Doing", "query": "is:open label:in-progress" },
+    { "name": "Done",  "query": "is:closed" }
+  ]
+}
+```
+
+Each entry requires a `name` (display label) and a `query` (any valid
+[GitHub issue search query](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests)).
+
+If no config file is found, the four built-in columns above are used.
 
 ## Keyboard shortcuts
 

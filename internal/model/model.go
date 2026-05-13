@@ -56,6 +56,11 @@ type Model struct {
 	lastRefresh time.Time
 }
 
+// Columns returns the model's column definitions.
+func (m Model) Columns() []Column {
+	return m.columns
+}
+
 // New creates a new Model for the given repo (empty = current dir repo).
 func New(repo string, columns []Column) Model {
 	n := len(columns)
