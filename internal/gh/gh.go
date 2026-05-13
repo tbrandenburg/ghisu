@@ -19,7 +19,9 @@ type Issue struct {
 }
 
 // FetchIssues runs `gh issue list` with the given search query and returns results.
-func FetchIssues(repo, query string) ([]Issue, error) {
+// repo is "owner/repo" (empty = current dir). hostname is the GitHub hostname
+// for GitHub Enterprise (empty = github.com).
+func FetchIssues(repo, hostname, query string) ([]Issue, error) {
 	args := []string{
 		"issue", "list",
 		"--search", query,
@@ -28,6 +30,9 @@ func FetchIssues(repo, query string) ([]Issue, error) {
 	}
 	if repo != "" {
 		args = append([]string{"--repo", repo}, args...)
+	}
+	if hostname != "" {
+		args = append([]string{"--hostname", hostname}, args...)
 	}
 
 	out, err := exec.Command("gh", args...).Output()

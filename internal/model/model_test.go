@@ -11,7 +11,7 @@ import (
 
 func TestNewModel(t *testing.T) {
 	cols := DefaultColumns()
-	m := New("", cols)
+	m := New("", "", cols)
 
 	if len(m.columns) != len(cols) {
 		t.Fatalf("expected %d columns, got %d", len(cols), len(m.columns))
@@ -39,7 +39,7 @@ func TestDefaultColumns(t *testing.T) {
 
 func TestKeyNavigation(t *testing.T) {
 	cols := DefaultColumns()
-	m := New("", cols)
+	m := New("", "", cols)
 	// pre-populate issues so cursor movement works
 	m.issues[0] = []gh.Issue{{Number: 1, Title: "a"}, {Number: 2, Title: "b"}}
 
@@ -74,7 +74,7 @@ func TestKeyNavigation(t *testing.T) {
 
 func TestKeyNavBoundaries(t *testing.T) {
 	cols := DefaultColumns()
-	m := New("", cols)
+	m := New("", "", cols)
 
 	// can't go left from first column
 	next, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("h")})
@@ -93,7 +93,7 @@ func TestKeyNavBoundaries(t *testing.T) {
 }
 
 func TestFetchedMsg(t *testing.T) {
-	m := New("", DefaultColumns())
+	m := New("", "", DefaultColumns())
 	issues := []gh.Issue{{Number: 5, Title: "hello"}}
 
 	next, _ := m.Update(fetchedMsg{col: 0, issues: issues})
@@ -111,7 +111,7 @@ func TestFetchedMsg(t *testing.T) {
 }
 
 func TestTickUpdatesRefresh(t *testing.T) {
-	m := New("", DefaultColumns())
+	m := New("", "", DefaultColumns())
 	tick := tickMsg(time.Now())
 
 	next, _ := m.Update(tick)
@@ -123,7 +123,7 @@ func TestTickUpdatesRefresh(t *testing.T) {
 }
 
 func TestView(t *testing.T) {
-	m := New("", DefaultColumns())
+	m := New("", "", DefaultColumns())
 	m.issues[0] = []gh.Issue{{Number: 1, Title: "test issue"}}
 
 	view := m.View()

@@ -12,7 +12,8 @@ import (
 )
 
 func main() {
-	repo := flag.String("repo", "", "GitHub repo (owner/name). Defaults to current directory repo.")
+	repo := flag.String("repo", "", "GitHub repo (owner/name). Overrides config. Defaults to current directory repo.")
+	hostname := flag.String("hostname", "", "GitHub hostname for GHE (e.g. github.example.com). Overrides config.")
 	cfgPath := flag.String("config", config.DefaultPath(), "Path to JSON config file.")
 	flag.Parse()
 
@@ -22,12 +23,23 @@ func main() {
 		os.Exit(1)
 	}
 
+	// CLI flags take precedence over config values.
+	resolvedRepo := cfg.Repo
+	if *repo != "" {
+		resolvedRepo = *repo
+	}
+
+	resolvedHostname := cfg.Hostname
+	if *hostname != "" {
+		resolvedHostname = *hostname
+	}
+
 	cols := toModelColumns(cfg.Columns)
 	if len(cols) == 0 {
 		cols = model.DefaultColumns()
 	}
 
-	m := model.New(*repo, cols)
+	m := model.New(resolvedRepo, resolvedHostname, cols)
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

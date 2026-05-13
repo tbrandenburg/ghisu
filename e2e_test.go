@@ -14,9 +14,9 @@ import (
 	"github.com/tbrandenburg/ghisu/internal/model"
 )
 
-func writeConfigFile(t *testing.T, cols []config.Column) string {
+func writeConfigFile(t *testing.T, cfg config.Config) string {
 	t.Helper()
-	data, err := json.Marshal(config.Config{Columns: cols})
+	data, err := json.Marshal(cfg)
 	if err != nil {
 		t.Fatalf("marshal config: %v", err)
 	}
@@ -33,15 +33,25 @@ func TestE2EConfigPipeline(t *testing.T) {
 		{Name: "Todo", Query: "is:open no:assignee"},
 		{Name: "Bugs", Query: "is:open label:bug"},
 	}
-	path := writeConfigFile(t, wantCols)
+	path := writeConfigFile(t, config.Config{
+		Repo:     "tbrandenburg/ghisu",
+		Hostname: "",
+		Columns:  wantCols,
+	})
 
 	cfg, err := config.Load(path)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
+	if cfg.Repo != "tbrandenburg/ghisu" {
+		t.Errorf("Repo: want %q, got %q", "tbrandenburg/ghisu", cfg.Repo)
+	}
+	if cfg.Hostname != "" {
+		t.Errorf("Hostname: want empty, got %q", cfg.Hostname)
+	}
 
 	cols := toModelColumns(cfg.Columns)
-	m := model.New("tbrandenburg/ghisu", cols)
+	m := model.New(cfg.Repo, cfg.Hostname, cols)
 
 	got := m.Columns()
 	if len(got) != len(wantCols) {
@@ -57,6 +67,33 @@ func TestE2EConfigPipeline(t *testing.T) {
 	}
 }
 
+// TestE2EHostnameInConfig verifies that a GHE hostname round-trips through config.
+func TestE2EHostnameInConfig(t *testing.T) {
+	path := writeConfigFile(t, config.Config{
+		Repo:     "myorg/myrepo",
+		Hostname: "github.example.com",
+		Columns:  []config.Column{{Name: "Open", Query: "is:open"}},
+	})
+
+	cfg, err := config.Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Hostname != "github.example.com" {
+		t.Errorf("Hostname: want %q, got %q", "github.example.com", cfg.Hostname)
+	}
+
+	// CLI flag override: flag value beats config value.
+	resolvedHostname := cfg.Hostname
+	flagHostname := "override.example.com"
+	if flagHostname != "" {
+		resolvedHostname = flagHostname
+	}
+	if resolvedHostname != "override.example.com" {
+		t.Errorf("flag override: want %q, got %q", "override.example.com", resolvedHostname)
+	}
+}
+
 // TestE2EDefaultFallback verifies that an empty config falls back to DefaultColumns.
 func TestE2EDefaultFallback(t *testing.T) {
 	cfg, err := config.Load("") // empty path → no file
@@ -69,7 +106,7 @@ func TestE2EDefaultFallback(t *testing.T) {
 		cols = model.DefaultColumns()
 	}
 
-	m := model.New("", cols)
+	m := model.New("", "", cols)
 	if len(m.Columns()) != 4 {
 		t.Errorf("expected 4 default columns, got %d", len(m.Columns()))
 	}
@@ -85,24 +122,20 @@ func TestE2ELiveGHFetch(t *testing.T) {
 		t.Skip("gh not authenticated")
 	}
 
-	wantCols := []config.Column{
-		{Name: "Open", Query: "is:open"},
-		{Name: "Closed", Query: "is:closed"},
-	}
-	path := writeConfigFile(t, wantCols)
+	path := writeConfigFile(t, config.Config{
+		Repo:    "tbrandenburg/ghisu",
+		Columns: []config.Column{{Name: "Open", Query: "is:open"}, {Name: "Closed", Query: "is:closed"}},
+	})
 
 	cfg, err := config.Load(path)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 
-	const repo = "tbrandenburg/ghisu"
-
-	// Fetch each column and verify we get slices back (content may vary).
 	for _, col := range cfg.Columns {
-		issues, err := gh.FetchIssues(repo, col.Query)
+		issues, err := gh.FetchIssues(cfg.Repo, cfg.Hostname, col.Query)
 		if err != nil {
-			t.Errorf("FetchIssues(%q, %q): %v", repo, col.Query, err)
+			t.Errorf("FetchIssues(%q, %q, %q): %v", cfg.Repo, cfg.Hostname, col.Query, err)
 			continue
 		}
 		t.Logf("column %q: %d issue(s)", col.Name, len(issues))

@@ -29,23 +29,30 @@ make build
 ## Usage
 
 ```bash
-# Current directory's GitHub repo
+# Current directory's GitHub repo (github.com)
 ghisu
 
 # Explicit repo
 ghisu --repo owner/repo
 
+# GitHub Enterprise
+ghisu --repo owner/repo --hostname github.example.com
+
 # Custom column config
 ghisu --config ~/.config/ghisu/config.json
 ```
 
+CLI flags (`--repo`, `--hostname`) always override values in the config file.
+
 ## Configuration
 
-Columns and queries can be defined in a JSON file. The default location is
-`$XDG_CONFIG_HOME/ghisu/config.json` (or `~/.config/ghisu/config.json`).
+Columns, repo, and hostname can be defined in a JSON file. The default location
+is `$XDG_CONFIG_HOME/ghisu/config.json` (or `~/.config/ghisu/config.json`).
 
 ```json
 {
+  "repo": "owner/repo",
+  "hostname": "github.example.com",
   "columns": [
     { "name": "Todo",  "query": "is:open no:assignee" },
     { "name": "Bugs",  "query": "is:open label:bug" },
@@ -55,10 +62,14 @@ Columns and queries can be defined in a JSON file. The default location is
 }
 ```
 
-Each entry requires a `name` (display label) and a `query` (any valid
-[GitHub issue search query](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests)).
+| Field      | Required | Description |
+|------------|----------|-------------|
+| `repo`     | No       | `owner/repo`. Omit to use the current directory's repo. |
+| `hostname` | No       | Bare hostname for GitHub Enterprise (e.g. `github.example.com`). Omit for github.com. Must not include a scheme (`https://`) or path. |
+| `columns`  | No       | Custom columns. Omit to use the four built-in defaults. |
 
-If no config file is found, the four built-in columns above are used.
+Each column entry requires a `name` (display label) and a `query` (any valid
+[GitHub issue search query](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests)).
 
 ## Keyboard shortcuts
 

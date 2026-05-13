@@ -52,6 +52,7 @@ type Model struct {
 	activeCol   int
 	activeCur   []int
 	repo        string
+	hostname    string
 	loading     []bool
 	lastRefresh time.Time
 }
@@ -61,8 +62,9 @@ func (m Model) Columns() []Column {
 	return m.columns
 }
 
-// New creates a new Model for the given repo (empty = current dir repo).
-func New(repo string, columns []Column) Model {
+// New creates a new Model for the given repo and hostname.
+// repo empty = current dir repo; hostname empty = github.com.
+func New(repo, hostname string, columns []Column) Model {
 	n := len(columns)
 	return Model{
 		columns:   columns,
@@ -71,6 +73,7 @@ func New(repo string, columns []Column) Model {
 		activeCur: make([]int, n),
 		loading:   make([]bool, n),
 		repo:      repo,
+		hostname:  hostname,
 	}
 }
 
@@ -80,9 +83,9 @@ func tick() tea.Cmd {
 	})
 }
 
-func fetchColumn(repo string, idx int, query string) tea.Cmd {
+func fetchColumn(repo, hostname string, idx int, query string) tea.Cmd {
 	return func() tea.Msg {
-		issues, err := gh.FetchIssues(repo, query)
+		issues, err := gh.FetchIssues(repo, hostname, query)
 		return fetchedMsg{col: idx, issues: issues, err: err}
 	}
 }
@@ -92,7 +95,7 @@ func (m Model) Init() tea.Cmd {
 	cmds := make([]tea.Cmd, 0, len(m.columns)+1)
 	for i, col := range m.columns {
 		m.loading[i] = true
-		cmds = append(cmds, fetchColumn(m.repo, i, col.Query))
+		cmds = append(cmds, fetchColumn(m.repo, m.hostname, i, col.Query))
 	}
 	cmds = append(cmds, tick())
 	return tea.Batch(cmds...)
@@ -109,7 +112,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds := make([]tea.Cmd, len(m.columns))
 		for i, col := range m.columns {
 			m.loading[i] = true
-			cmds[i] = fetchColumn(m.repo, i, col.Query)
+			cmds[i] = fetchColumn(m.repo, m.hostname, i, col.Query)
 		}
 		return m, tea.Batch(append(cmds, tick())...)
 
@@ -156,7 +159,7 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		cmds := make([]tea.Cmd, len(m.columns))
 		for i, c := range m.columns {
 			m.loading[i] = true
-			cmds[i] = fetchColumn(m.repo, i, c.Query)
+			cmds[i] = fetchColumn(m.repo, m.hostname, i, c.Query)
 		}
 		return m, tea.Batch(cmds...)
 	}

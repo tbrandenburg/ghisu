@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Column defines a kanban column with a display name and a GitHub search query.
@@ -17,6 +18,14 @@ type Column struct {
 
 // Config is the top-level configuration structure.
 type Config struct {
+	// Repo is the GitHub repository in "owner/repo" format.
+	// When empty the gh CLI resolves the repo from the current directory.
+	Repo string `json:"repo"`
+
+	// Hostname is the GitHub hostname (e.g. "github.example.com" for GHE).
+	// When empty github.com is used (no --hostname flag is passed to gh).
+	Hostname string `json:"hostname"`
+
 	Columns []Column `json:"columns"`
 }
 
@@ -62,6 +71,9 @@ func Load(path string) (Config, error) {
 }
 
 func (c Config) validate() error {
+	if c.Hostname != "" && strings.ContainsAny(c.Hostname, "/:") {
+		return fmt.Errorf("hostname must be a bare hostname without scheme or path (got %q)", c.Hostname)
+	}
 	for i, col := range c.Columns {
 		if col.Name == "" {
 			return fmt.Errorf("column[%d]: name is required", i)

@@ -42,6 +42,51 @@ func TestLoadValidConfig(t *testing.T) {
 	}
 }
 
+func TestLoadRepoAndHostname(t *testing.T) {
+	path := writeTemp(t, `{
+		"repo": "myorg/myrepo",
+		"hostname": "github.example.com",
+		"columns": [
+			{"name": "Open", "query": "is:open"}
+		]
+	}`)
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Repo != "myorg/myrepo" {
+		t.Errorf("Repo: want %q, got %q", "myorg/myrepo", cfg.Repo)
+	}
+	if cfg.Hostname != "github.example.com" {
+		t.Errorf("Hostname: want %q, got %q", "github.example.com", cfg.Hostname)
+	}
+}
+
+func TestLoadHostnameWithSchemeRejected(t *testing.T) {
+	path := writeTemp(t, `{
+		"hostname": "https://github.example.com",
+		"columns": [{"name": "Open", "query": "is:open"}]
+	}`)
+
+	_, err := Load(path)
+	if err == nil {
+		t.Error("expected error for hostname with scheme, got nil")
+	}
+}
+
+func TestLoadHostnameWithPathRejected(t *testing.T) {
+	path := writeTemp(t, `{
+		"hostname": "github.example.com/extra",
+		"columns": [{"name": "Open", "query": "is:open"}]
+	}`)
+
+	_, err := Load(path)
+	if err == nil {
+		t.Error("expected error for hostname with path, got nil")
+	}
+}
+
 func TestLoadEmptyPath(t *testing.T) {
 	cfg, err := Load("")
 	if err != nil {
@@ -91,7 +136,6 @@ func TestDefaultPath(t *testing.T) {
 	if path == "" {
 		t.Error("DefaultPath() returned empty string")
 	}
-	// must end with the expected suffix
 	want := filepath.Join("ghisu", "config.json")
 	if filepath.Base(filepath.Dir(path)) != "ghisu" || filepath.Base(path) != "config.json" {
 		t.Errorf("DefaultPath() = %q, expected to end with %q", path, want)
