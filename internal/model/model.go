@@ -46,13 +46,13 @@ type fetchedMsg struct {
 
 // Model is the Bubble Tea application model.
 type Model struct {
-	columns  []Column
-	issues   [][]gh.Issue
-	errors   []error
-	activeCol int
-	activeCur []int
-	repo      string
-	loading   []bool
+	columns     []Column
+	issues      [][]gh.Issue
+	errors      []error
+	activeCol   int
+	activeCur   []int
+	repo        string
+	loading     []bool
 	lastRefresh time.Time
 }
 
@@ -173,32 +173,32 @@ func (m Model) View() string {
 
 var (
 	activeColStyle = lipgloss.NewStyle().
-		Width(colWidth).
-		Height(colHeight).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("99")).
-		Padding(0, 1)
+			Width(colWidth).
+			Height(colHeight).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("99")).
+			Padding(0, 1)
 
 	inactiveColStyle = lipgloss.NewStyle().
-		Width(colWidth).
-		Height(colHeight).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		Padding(0, 1)
+				Width(colWidth).
+				Height(colHeight).
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color("240")).
+				Padding(0, 1)
 
 	titleStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("99"))
 
 	inactiveTitleStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("240"))
 
 	selectedItemStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("212")).
-		Bold(true)
+				Foreground(lipgloss.Color("212")).
+				Bold(true)
 
 	itemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
 
 	statusStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		PaddingLeft(1)
+			Foreground(lipgloss.Color("240")).
+			PaddingLeft(1)
 )
 
 func (m Model) renderColumn(idx int, col Column) string {
