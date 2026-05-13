@@ -132,12 +132,59 @@ func TestLoadMissingQuery(t *testing.T) {
 }
 
 func TestDefaultPath(t *testing.T) {
-	path := DefaultPath()
+	path := ResolvePath()
 	if path == "" {
-		t.Error("DefaultPath() returned empty string")
+		t.Error("ResolvePath() returned empty string")
 	}
-	want := filepath.Join("ghisu", "config.json")
+	// must end with ghisu/config.json
 	if filepath.Base(filepath.Dir(path)) != "ghisu" || filepath.Base(path) != "config.json" {
-		t.Errorf("DefaultPath() = %q, expected to end with %q", path, want)
+		t.Errorf("ResolvePath() = %q, expected to end with ghisu/config.json", path)
+	}
+}
+
+func TestResolvePathPrefersLocal(t *testing.T) {
+	// Create a temporary directory to act as the working directory.
+	dir := t.TempDir()
+	localDir := filepath.Join(dir, ".ghisu")
+	if err := os.MkdirAll(localDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	localCfg := filepath.Join(localDir, "config.json")
+	if err := os.WriteFile(localCfg, []byte(`{"columns":[]}`), 0o644); err != nil {
+		t.Fatalf("write local config: %v", err)
+	}
+
+	// Change working directory to the temp dir for this test.
+	orig, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	got := ResolvePath()
+	if got != localCfg {
+		t.Errorf("ResolvePath() = %q, want local path %q", got, localCfg)
+	}
+}
+
+func TestResolvePathFallsBackToGlobal(t *testing.T) {
+	// Use a temp dir with no .ghisu/config.json.
+	dir := t.TempDir()
+	orig, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+
+	got := ResolvePath()
+	global := globalPath()
+	if got != global {
+		t.Errorf("ResolvePath() = %q, want global path %q", got, global)
 	}
 }

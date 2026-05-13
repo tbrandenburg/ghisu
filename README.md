@@ -72,8 +72,13 @@ CLI flags (`--repo`, `--hostname`) always override values in the config file.
 
 ## Configuration
 
-Columns, repo, and hostname can be defined in a JSON file. The default location
-is `$XDG_CONFIG_HOME/ghisu/config.json` (or `~/.config/ghisu/config.json`).
+Columns, repo, and hostname can be defined in a JSON file. ghisu looks for a
+config file in the following order, using the first one found:
+
+1. `.ghisu/config.json` in the current directory — project-local config
+2. `$XDG_CONFIG_HOME/ghisu/config.json` (or `~/.config/ghisu/config.json`) — user-global config
+
+The `-config` flag overrides both.
 
 ```json
 {

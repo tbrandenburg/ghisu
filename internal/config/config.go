@@ -29,9 +29,33 @@ type Config struct {
 	Columns []Column `json:"columns"`
 }
 
-// DefaultPath returns the default config file location:
-// $XDG_CONFIG_HOME/ghisu/config.json or ~/.config/ghisu/config.json.
-func DefaultPath() string {
+// ResolvePath returns the config file path to use, checking locations in order:
+//  1. $PWD/.ghisu/config.json  (project-local)
+//  2. $XDG_CONFIG_HOME/ghisu/config.json (or ~/.config/ghisu/config.json)
+//
+// The first path that exists on disk is returned. If neither exists, the
+// global path is returned as the default (Load handles the missing-file case).
+func ResolvePath() string {
+	local := localPath()
+	if local != "" {
+		if _, err := os.Stat(local); err == nil {
+			return local
+		}
+	}
+	return globalPath()
+}
+
+// localPath returns $PWD/.ghisu/config.json, or empty on error.
+func localPath() string {
+	wd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(wd, ".ghisu", "config.json")
+}
+
+// globalPath returns $XDG_CONFIG_HOME/ghisu/config.json or ~/.config/ghisu/config.json.
+func globalPath() string {
 	base := os.Getenv("XDG_CONFIG_HOME")
 	if base == "" {
 		home, err := os.UserHomeDir()

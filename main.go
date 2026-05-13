@@ -14,7 +14,7 @@ import (
 func main() {
 	repo := flag.String("repo", "", "GitHub repo (owner/name). Overrides config. Defaults to current directory repo.")
 	hostname := flag.String("hostname", "", "GitHub hostname for GHE (e.g. github.example.com). Overrides config.")
-	cfgPath := flag.String("config", config.DefaultPath(), "Path to JSON config file.")
+	cfgPath := flag.String("config", config.ResolvePath(), "Path to JSON config file.")
 	flag.Parse()
 
 	cfg, err := config.Load(*cfgPath)
